@@ -8,10 +8,10 @@ svg {
 path {
 	vector-effect: non-scaling-stroke;
 }
-path.country {
+.country {
 	fill: #ccc;
 }
-path.country.no-data {
+.country.no-data {
 	opacity: .3;
 }
 path.schengen {
@@ -29,9 +29,11 @@ circle {
 }
 circle.metric {
 	fill: none;
-	stroke: rgba(0, 0, 0, .3);
-	stroke-width: 2;
+	stroke-width: 1;
+	mix-blend-mode: difference;
+	stroke: rgba(255, 255, 255, .5);
 }
 circle.application-count {
-	fill: #f00;
+	mix-blend-mode: multiply;
+	fill: #415A77;
 }
