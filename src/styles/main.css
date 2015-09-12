@@ -13,9 +13,11 @@ path {
 }
 .country {
 	fill: #ccc;
+	cursor: pointer;
 }
 .country.no-data {
 	opacity: .3;
+	cursor: default;
 }
 path.schengen {
 	fill: none;
@@ -27,18 +29,20 @@ path.border {
 	stroke: #fff;
 	stroke-width: 1;
 }
-circle {
+rect {
 	vector-effect: non-scaling-stroke;
 }
-circle.metric {
+rect.metric {
 	fill: rgba(0, 0, 0, 0);
 	stroke-width: 1;
 	mix-blend-mode: difference;
 	stroke: rgba(255, 255, 255, .5);
+	cursor: pointer;
 }
-circle.application-count {
+rect.application-count {
 	mix-blend-mode: multiply;
 	fill: #415A77;
+	cursor: pointer;
 }
 .label text:first-child {
 	stroke: #fff;
@@ -60,14 +64,33 @@ circle.application-count {
 	pointer-events: none;
 	position: absolute;
 	background: #fff;
+	padding: .5em;
+	width: 30%;
+}
+.tooltip .values {
+	display: flex;
+	flex-wrap: wrap;
+}
+.tooltip .statistic {
+	width: 10em;
+	flex-grow: 1;
+}
+.tooltip .number {
+	display: block;
+	font-size: 1.5em;
 }
 .tooltip.hidden {
 	display: none;
 }
-@media (max-width: 400px) {
+.tooltip small {
+	display: block;
+	margin-top: .5em;
+}
+@media (max-width: 500px) {
 	.tooltip {
 		position: fixed;
 		left: 0 !important;
+		top: auto !important;
 		bottom: 0 !important;
 		width: 100% !important;
 	}

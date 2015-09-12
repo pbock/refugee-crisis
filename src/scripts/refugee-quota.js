@@ -1,5 +1,6 @@
 window.addEventListener('DOMContentLoaded', function () {
 	'use strict';
+	/* global d3, queue, topojson */
 
 	window.debug = {};
 
@@ -89,15 +90,16 @@ window.addEventListener('DOMContentLoaded', function () {
 				byCountry[a.country] = a;
 			});
 
+			// Scales and formats
 			var rPop = d3.scale.sqrt()
 				.domain([ 0, totals.population ])
-				.range([ 0, WIDTH/8 ]);
+				.range([ 0, WIDTH/4 ]);
 			var rApp = d3.scale.sqrt()
 				.domain([ 0, totals.applications ])
-				.range([ 0, WIDTH/8 ]);
+				.range([ 0, WIDTH/4 ]);
 			var rGDP = d3.scale.sqrt()
 				.domain([ 0, totals.gdp ])
-				.range([ 0, WIDTH/8 ]);
+				.range([ 0, WIDTH/4 ]);
 			var projection = d3.geo.conicConformal()
 				.parallels([ 65, 35 ])
 				.center([ 0, 52 ])
@@ -106,6 +108,15 @@ window.addEventListener('DOMContentLoaded', function () {
 				.scale(1300);
 			var path = d3.geo.path()
 				.projection(projection);
+			var numberFormat = d3.format(',f');
+			var percentFormat = d3.format('.1%');
+
+			// State
+			var metric = 'population';
+			var rectSide = {
+				population: function (f) { return rPop(f.data.population); },
+				gdp:        function (f) { return rGDP(f.data.gdp); },
+			};
 
 			// Tooltip
 			var tooltip = (function () {
@@ -114,13 +125,26 @@ window.addEventListener('DOMContentLoaded', function () {
 					.attr('class', 'tooltip hidden');
 				var countryName = tt.append('header').append('h3');
 				var values = tt.append('div').attr('class', 'values');
-				var applicationCountC = values.append('p').attr('class', 'applications');
-				var applicationCount = applicationCountC.append('span').attr('class', 'number');
-				applicationCountC.append('span').text(' applications');
-				var adjustedCountC = values.append('p').attr('class', 'adjusted');
-				var adjustedCount = adjustedCountC.append('span').attr('class', 'number');
-				adjustedCountC.append('span').text(' applications if they were distributed by ');
-				adjustedCountC.append('span').attr('class', 'js-metric-name');
+				var stats = [
+					{ name: 'applications', label: 'Applications', relative: true },
+					{ name: 'by-metric',
+						label: function () { return 'Applications if they were distributed by ' + metric; },
+						value: function (f) { return totals.applications * f.data.relative[metric]; }
+					},
+					{ name: 'gdp', label: 'GDP', unit: '€ _ M', relative: true },
+					{ name: 'population', label: 'Population', relative: true },
+				];
+				var statsP = values.selectAll('.statistic')
+					.data(stats)
+					.enter()
+					.append('p')
+						.attr('class', 'statistic');
+				var statsSpan = statsP.append('span').attr('class', 'number')
+				var statLabels = statsP.append('span');
+
+				var statsRelative = statsP.filter(ƒ('relative')).append('small');
+				var statsRelativeSpan = statsRelative.append('span');
+				statsRelative.append('span').text(' of EU total');
 
 				function show(f) {
 					if (tt.datum() === f) return;
@@ -132,14 +156,28 @@ window.addEventListener('DOMContentLoaded', function () {
 					var group = countryGroups.filter(function (g) { return g === f; });
 					var gRect = group.node().getBoundingClientRect();
 					var cRect = container.node().getBoundingClientRect();
+					var left, right;
+					if (gRect.left + gRect.width / 2 > cRect.width / 2) {
+						left = 'auto';
+						right = cRect.width - gRect.left + 5 + 'px';
+					} else {
+						left = (gRect.left - cRect.left) + gRect.width + 5 + 'px';
+						right = 'auto';
+					}
 					tt.style({
-						left: (gRect.left - cRect.left) + gRect.width + 'px',
-						top: (gRect.top - cRect.top) + (gRect.height / 2) + 'px' });
+						left: left, right: right,
+						top: gRect.top - cRect.top + 'px' });
 
 					// Fill elements
 					countryName.text(f.properties.name);
-					applicationCount.text(f.data.applications);
-					adjustedCount.text(totals.applications * f.data.relative.population);
+					statLabels.text(function (s) {
+						return (typeof s.label === 'function') ? s.label() : s.label; });
+					statsSpan.text(function (s) {
+						var unit = s.unit || '_';
+						if (s.value) return numberFormat(s.value(f))
+						else return unit.replace('_', numberFormat(f.data[s.name])); });
+					statsRelativeSpan.text(function (s) { return percentFormat(f.data.relative[s.name]); });
+					//adjustedCount.text(numberFormat(totals.applications * f.data.relative[metric]));
 				}
 				function hide() {
 					if (!tt.datum()) return;
@@ -180,17 +218,23 @@ window.addEventListener('DOMContentLoaded', function () {
 				.enter()
 				.append('g')
 				.attr('class', 'country')
-				.attr('transform', function (f) { return translate.apply(null, mainCentroid(path, f)); })
+				.attr('transform', function (f) {
+					var centroid = mainCentroid(path, f);
+					var side = rApp(f.data.applications);
+					return translate.apply(null, [ centroid[0] - side/2, centroid[1] - side/2 ]);
+				})
 				.on('mouseenter', tooltip.show)
 				.on('mouseleave', tooltip.hide);
 
-			var applicationCircles = countryGroups.append('circle')
+			var applicationRects = countryGroups.append('rect')
 				.attr('class', 'application-count')
-				.attr('r', function (f) { return rApp(f.data.applications); });
+				.attr('width', function (f) { return rApp(f.data.applications); })
+				.attr('height', function (f) { return rApp(f.data.applications); });
 
-			var metricCircles = countryGroups.append('circle')
+			var metricRects = countryGroups.append('rect')
 				.attr('class', 'metric')
-				.attr('r', function (f) { return rPop(f.data.population); });
+				.attr('width', function (f) { return rPop(f.data.population); })
+				.attr('height', function (f) { return rPop(f.data.population); });
 
 			// Legend
 			var legend = container.append('div')
@@ -199,14 +243,14 @@ window.addEventListener('DOMContentLoaded', function () {
 			dl.append('dt')
 				.append('svg')
 					.attr({ width: 30, height: 30 })
-					.append('circle')
+					.append('rect')
 						.attr({ 'class': 'application-count', cx: 15, cy: 15, r: 12 });
 			dl.append('dd')
 				.text('Number of asylum applications by Syrians, Eritreans, and Iraqis (April—June 2015*)')
 			dl.append('dt')
 				.append('svg')
 					.attr({ width: 30, height: 30 })
-					.append('circle')
+					.append('rect')
 						.attr({ 'class': 'metric', cx: 15, cy: 15, r: 12 });
 			var metricControl = dl.append('dd')
 				.attr('class', 'controls')
@@ -228,7 +272,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
 			legend.append('p').append('small').text('* June data estimated for Cyprus')
 
-			// As a sanity check, calculate the total area of all three sets of circles
+			// As a sanity check, calculate the total area of all three sets of rects
 			var totalAreas = { population: 0, gdp: 0, applications: 0 };
 			applications.forEach(function (d) {
 				totalAreas.population   += Math.pow(rPop(d.population), 2);
@@ -246,17 +290,11 @@ window.addEventListener('DOMContentLoaded', function () {
 
 				svg.selectAll('text').attr('font-size', fontSize);
 			}
-			function setMetric(metric) {
-				var radius;
-				d3.selectAll('.js-metric-name').text(metric);
-				metric = metric.toLowerCase();
-				if (metric === 'population') {
-					radius = function (f) { return rPop(f.data.population); };
-				} else if (metric === 'gdp') {
-					radius = function (f) { return rGDP(f.data.gdp); };
-				}
+			function setMetric(m) {
+				d3.selectAll('.js-metric-name').text(m);
+				metric = m.toLowerCase();
 				metricControl.classed('active', function (m) { return m.toLowerCase() === metric; });
-				metricCircles.transition().attr('r', radius);
+				metricRects.transition().attr('width', rectSide[metric]).attr('height', rectSide[metric]);
 			}
 			setMetric('population');
 
