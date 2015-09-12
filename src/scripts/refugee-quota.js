@@ -60,7 +60,6 @@ window.addEventListener('DOMContentLoaded', function () {
 				.attr('preserveAspectRatio', 'xMidYMid')
 				.attr('viewBox', [ 0, 0, WIDTH, HEIGHT ].join(' '));
 			var stage = svg.append('g');
-
 			applications = applications.map(function (row) {
 				return {
 					country:       row.country,
@@ -100,6 +99,7 @@ window.addEventListener('DOMContentLoaded', function () {
 			var borders = topojson.mesh(geo, geo.objects.ne_110m_admin_0_countries,
 				function(a, b) { return a !== b; });
 			var schengen = topojson.merge(geo, geo.objects.ne_110m_admin_0_countries.geometries.filter(isSchengenCountry));
+			world.features.forEach(function (f) { f.data = byCountry[f.properties.iso_a2]; });
 			debug.world = world;
 
 			var paths = stage.selectAll('path')
@@ -107,7 +107,7 @@ window.addEventListener('DOMContentLoaded', function () {
 				.enter()
 				.append('path')
 				.attr('class', 'country')
-				.classed('no-data', function (f) { return !byCountry[f.properties.iso_a2]; })
+				.classed('no-data', function (f) { return !f.data; })
 				.attr('d', path);
 			var borderPaths = stage.append('path')
 				.datum(borders)
@@ -119,7 +119,7 @@ window.addEventListener('DOMContentLoaded', function () {
 				.attr('d', path);
 
 			var countryGroups = stage.selectAll('g.country')
-				.data(world.features.filter(function (f) { return byCountry[f.properties.iso_a2]; }))
+				.data(world.features.filter(ƒ('data')))
 				.enter()
 				.append('g')
 				.attr('class', 'country')
@@ -127,11 +127,11 @@ window.addEventListener('DOMContentLoaded', function () {
 
 			var applicationCircles = countryGroups.append('circle')
 				.attr('class', 'application-count')
-				.attr('r', function (f) { return rApp(byCountry[f.properties.iso_a2].applications); });
+				.attr('r', function (f) { return rApp(f.data.applications); });
 
 			var metricCircles = countryGroups.append('circle')
 				.attr('class', 'metric')
-				.attr('r', function (f) { return rPop(byCountry[f.properties.iso_a2].population); });
+				.attr('r', function (f) { return rPop(f.data.population); });
 
 			// Legend
 			var legend = container.append('div')
@@ -191,9 +191,9 @@ window.addEventListener('DOMContentLoaded', function () {
 				var radius;
 				metric = metric.toLowerCase();
 				if (metric === 'population') {
-					radius = function (f) { return rPop(byCountry[f.properties.iso_a2].population); };
+					radius = function (f) { return rPop(f.data.population); };
 				} else if (metric === 'gdp') {
-					radius = function (f) { return rGDP(byCountry[f.properties.iso_a2].gdp); };
+					radius = function (f) { return rGDP(f.data.gdp); };
 				}
 				metricControl.classed('active', function (m) { return m.toLowerCase() === metric; });
 				metricCircles.transition().attr('r', radius);
