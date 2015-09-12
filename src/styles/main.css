@@ -1,7 +1,7 @@
 body {
 	margin: 0;
 }
-svg {
+.visualization {
 	width: 100%;
 	height: 80vh;
 }
@@ -45,4 +45,11 @@ circle.application-count {
 }
 .label text:last-child {
 	fill: #000;
+}
+.legend-bg {
+	fill: #eee;
+}
+.legend path {
+	stroke: #000;
+	fill: none;
 }

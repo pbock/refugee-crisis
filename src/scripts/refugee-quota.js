@@ -54,7 +54,9 @@ window.addEventListener('DOMContentLoaded', function () {
 		.defer(d3.json, 'data/world.topojson')
 		.defer(d3.tsv, 'data/applications.tsv')
 		.await(function (error, geo, applications) {
-			var svg = d3.select('.refugee-quota').append('svg')
+			var container = d3.select('.refugee-quota');
+			var svg = container.append('svg')
+				.attr('class', 'visualization')
 				.attr('preserveAspectRatio', 'xMidYMid')
 				.attr('viewBox', [ 0, 0, WIDTH, HEIGHT ].join(' '));
 			var stage = svg.append('g');
@@ -123,16 +125,6 @@ window.addEventListener('DOMContentLoaded', function () {
 				.attr('class', 'country')
 				.attr('transform', function (f) { return translate.apply(null, mainCentroid(path, f)); });
 
-			var countryLabelGroups = stage.selectAll('.label')
-				.data(world.features.filter(function (f) { return byCountry[f.properties.iso_a2]; }))
-				.enter()
-				.append('g')
-				.attr('transform', function (f) { return translate.apply(null, mainCentroid(path, f)); })
-				.attr('class', 'label');
-			countryLabelGroups.append('text').attr('text-anchor', 'middle').text(ƒ('properties', 'iso_a2'));
-			countryLabelGroups.append('text').attr('text-anchor', 'middle').text(ƒ('properties', 'iso_a2'));
-			var countryLabels = countryLabelGroups.selectAll('text');
-
 			var applicationCircles = countryGroups.append('circle')
 				.attr('class', 'application-count')
 				.attr('r', function (f) { return rApp(byCountry[f.properties.iso_a2].applications); });
@@ -140,6 +132,42 @@ window.addEventListener('DOMContentLoaded', function () {
 			var metricCircles = countryGroups.append('circle')
 				.attr('class', 'metric')
 				.attr('r', function (f) { return rPop(byCountry[f.properties.iso_a2].population); });
+
+			// Legend
+			var legend = container.append('div')
+				.attr('class', 'legend');
+			var dl = legend.append('dl');
+			dl.append('dt')
+				.append('svg')
+					.attr({ width: 30, height: 30 })
+					.append('circle')
+						.attr({ 'class': 'application-count', cx: 15, cy: 15, r: 12 });
+			dl.append('dd')
+				.text('Number of asylum applications by Syrians, Eritreans, and Iraqis (April—June 2015*)')
+			dl.append('dt')
+				.append('svg')
+					.attr({ width: 30, height: 30 })
+					.append('circle')
+						.attr({ 'class': 'metric', cx: 15, cy: 15, r: 12 });
+			var metricControl = dl.append('dd')
+				.attr('class', 'controls')
+				.text('Number of applications if they were equally distributed by ')
+				.selectAll('button')
+					.data([ 'Population', 'GDP' ])
+					.enter()
+					.append('button')
+					.text(ƒ())
+					.on('click', setMetric);
+			dl.append('dt')
+				.append('svg')
+					.attr({ width: 30, height: 4 })
+					.append('path')
+						.attr('class', 'schengen')
+						.attr('d', 'M 3 2 L 27 2');
+			dl.append('dd')
+				.text('Schengen Area');
+
+			legend.append('p').append('small').text('* June data estimated for Cyprus')
 
 			// As a sanity check, calculate the total area of all three sets of circles
 			var totalAreas = { population: 0, gdp: 0, applications: 0 };
@@ -158,21 +186,17 @@ window.addEventListener('DOMContentLoaded', function () {
 				var fontSize = 400/Math.sqrt(width);
 
 				svg.selectAll('text').attr('font-size', fontSize);
-				countryLabels.attr('dy', fontSize/3.3);
 			}
 			function setMetric(metric) {
 				var radius;
+				metric = metric.toLowerCase();
 				if (metric === 'population') {
 					radius = function (f) { return rPop(byCountry[f.properties.iso_a2].population); };
 				} else if (metric === 'gdp') {
 					radius = function (f) { return rGDP(byCountry[f.properties.iso_a2].gdp); };
 				}
+				metricControl.classed('active', function (m) { return m.toLowerCase() === metric; });
 				metricCircles.transition().attr('r', radius);
-				countryLabels.transition().attr('dx', function (f) {
-					var radii = [ radius(f), rApp(byCountry[f.properties.iso_a2].applications) ];
-					if (Math.min.apply(null, radii) < 10) return -(Math.max.apply(null, radii) + 15);
-					return 0;
-				});
 			}
 			setMetric('population');
 
