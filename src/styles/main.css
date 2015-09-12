@@ -1,6 +1,9 @@
 body {
 	margin: 0;
 }
+.refugee-quota {
+	position: relative;
+}
 .visualization {
 	width: 100%;
 	height: 80vh;
@@ -28,7 +31,7 @@ circle {
 	vector-effect: non-scaling-stroke;
 }
 circle.metric {
-	fill: none;
+	fill: rgba(0, 0, 0, 0);
 	stroke-width: 1;
 	mix-blend-mode: difference;
 	stroke: rgba(255, 255, 255, .5);
@@ -52,4 +55,20 @@ circle.application-count {
 .legend path {
 	stroke: #000;
 	fill: none;
+}
+.tooltip {
+	pointer-events: none;
+	position: absolute;
+	background: #fff;
+}
+.tooltip.hidden {
+	display: none;
+}
+@media (max-width: 400px) {
+	.tooltip {
+		position: fixed;
+		left: 0 !important;
+		bottom: 0 !important;
+		width: 100% !important;
+	}
 }

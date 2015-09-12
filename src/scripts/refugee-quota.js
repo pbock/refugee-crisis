@@ -67,24 +67,36 @@ window.addEventListener('DOMContentLoaded', function () {
 					gdp:          +row.gdp,
 					gdpPerCapita: +row['gdp/capita'],
 					applications: +row.nsum,
-					relAps:       +row.nsum / (+row['gdp/capita'] * +row.population),
 					population:	  +row.population,
 				};
 			}).sort(function (a, b) {
 				return b.gdpPerCapita - a.gdpPerCapita;
 			});
 			var byCountry = {};
-			applications.forEach(function (a) { byCountry[a.country] = a; });
-			console.log(applications);
+			var totals = {
+				applications: d3.sum(applications, ƒ('applications')),
+				population:   d3.sum(applications, ƒ('population')),
+				gdp:          d3.sum(applications, ƒ('gdp')),
+			};
+			applications.forEach(function (a) {
+				// Calculate relative values
+				a.relative = {
+					applications: a.applications/totals.applications,
+					population:   a.population/totals.population,
+					gdp:          a.gdp/totals.gdp,
+				};
+				// Fill byCountry object
+				byCountry[a.country] = a;
+			});
 
 			var rPop = d3.scale.sqrt()
-				.domain([ 0, d3.sum(applications, ƒ('population')) ])
+				.domain([ 0, totals.population ])
 				.range([ 0, WIDTH/8 ]);
 			var rApp = d3.scale.sqrt()
-				.domain([ 0, d3.sum(applications, ƒ('applications')) ])
+				.domain([ 0, totals.applications ])
 				.range([ 0, WIDTH/8 ]);
 			var rGDP = d3.scale.sqrt()
-				.domain([ 0, d3.sum(applications, ƒ('gdp')) ])
+				.domain([ 0, totals.gdp ])
 				.range([ 0, WIDTH/8 ]);
 			var projection = d3.geo.conicConformal()
 				.parallels([ 65, 35 ])
@@ -94,6 +106,49 @@ window.addEventListener('DOMContentLoaded', function () {
 				.scale(1300);
 			var path = d3.geo.path()
 				.projection(projection);
+
+			// Tooltip
+			var tooltip = (function () {
+				var tt = container.append('aside')
+					.datum(null)
+					.attr('class', 'tooltip hidden');
+				var countryName = tt.append('header').append('h3');
+				var values = tt.append('div').attr('class', 'values');
+				var applicationCountC = values.append('p').attr('class', 'applications');
+				var applicationCount = applicationCountC.append('span').attr('class', 'number');
+				applicationCountC.append('span').text(' applications');
+				var adjustedCountC = values.append('p').attr('class', 'adjusted');
+				var adjustedCount = adjustedCountC.append('span').attr('class', 'number');
+				adjustedCountC.append('span').text(' applications if they were distributed by ');
+				adjustedCountC.append('span').attr('class', 'js-metric-name');
+
+				function show(f) {
+					if (tt.datum() === f) return;
+					if (!f.data) return;
+					tt.datum(f);
+					tt.classed('hidden', false);
+
+					// Set position
+					var group = countryGroups.filter(function (g) { return g === f; });
+					var gRect = group.node().getBoundingClientRect();
+					var cRect = container.node().getBoundingClientRect();
+					tt.style({
+						left: (gRect.left - cRect.left) + gRect.width + 'px',
+						top: (gRect.top - cRect.top) + (gRect.height / 2) + 'px' });
+
+					// Fill elements
+					countryName.text(f.properties.name);
+					applicationCount.text(f.data.applications);
+					adjustedCount.text(totals.applications * f.data.relative.population);
+				}
+				function hide() {
+					if (!tt.datum()) return;
+					tt.datum(null);
+					tt.classed('hidden', true);
+				}
+				return { show: show, hide: hide };
+			})();
+
 
 			var world = topojson.feature(geo, geo.objects.ne_110m_admin_0_countries);
 			var borders = topojson.mesh(geo, geo.objects.ne_110m_admin_0_countries,
@@ -108,7 +163,9 @@ window.addEventListener('DOMContentLoaded', function () {
 				.append('path')
 				.attr('class', 'country')
 				.classed('no-data', function (f) { return !f.data; })
-				.attr('d', path);
+				.attr('d', path)
+				.on('mouseenter', tooltip.show)
+				.on('mouseleave', tooltip.hide);
 			var borderPaths = stage.append('path')
 				.datum(borders)
 				.attr('class', 'border')
@@ -123,7 +180,9 @@ window.addEventListener('DOMContentLoaded', function () {
 				.enter()
 				.append('g')
 				.attr('class', 'country')
-				.attr('transform', function (f) { return translate.apply(null, mainCentroid(path, f)); });
+				.attr('transform', function (f) { return translate.apply(null, mainCentroid(path, f)); })
+				.on('mouseenter', tooltip.show)
+				.on('mouseleave', tooltip.hide);
 
 			var applicationCircles = countryGroups.append('circle')
 				.attr('class', 'application-count')
@@ -153,7 +212,7 @@ window.addEventListener('DOMContentLoaded', function () {
 				.attr('class', 'controls')
 				.text('Number of applications if they were equally distributed by ')
 				.selectAll('button')
-					.data([ 'Population', 'GDP' ])
+					.data([ 'population', 'GDP' ])
 					.enter()
 					.append('button')
 					.text(ƒ())
@@ -189,6 +248,7 @@ window.addEventListener('DOMContentLoaded', function () {
 			}
 			function setMetric(metric) {
 				var radius;
+				d3.selectAll('.js-metric-name').text(metric);
 				metric = metric.toLowerCase();
 				if (metric === 'population') {
 					radius = function (f) { return rPop(f.data.population); };
