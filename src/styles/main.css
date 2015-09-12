@@ -37,3 +37,12 @@ circle.application-count {
 	mix-blend-mode: multiply;
 	fill: #415A77;
 }
+.label text:first-child {
+	stroke: #fff;
+	stroke-width: 3;
+	stroke-linejoin: round;
+	opacity: .5;
+}
+.label text:last-child {
+	fill: #000;
+}

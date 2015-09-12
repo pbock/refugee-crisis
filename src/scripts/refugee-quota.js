@@ -97,7 +97,6 @@ window.addEventListener('DOMContentLoaded', function () {
 			var world = topojson.feature(geo, geo.objects.ne_110m_admin_0_countries);
 			var borders = topojson.mesh(geo, geo.objects.ne_110m_admin_0_countries,
 				function(a, b) { return a !== b; });
-			console.log(borders)
 			var schengen = topojson.merge(geo, geo.objects.ne_110m_admin_0_countries.geometries.filter(isSchengenCountry));
 			debug.world = world;
 
@@ -124,6 +123,16 @@ window.addEventListener('DOMContentLoaded', function () {
 				.attr('class', 'country')
 				.attr('transform', function (f) { return translate.apply(null, mainCentroid(path, f)); });
 
+			var countryLabelGroups = stage.selectAll('.label')
+				.data(world.features.filter(function (f) { return byCountry[f.properties.iso_a2]; }))
+				.enter()
+				.append('g')
+				.attr('transform', function (f) { return translate.apply(null, mainCentroid(path, f)); })
+				.attr('class', 'label');
+			countryLabelGroups.append('text').attr('text-anchor', 'middle').text(ƒ('properties', 'iso_a2'));
+			countryLabelGroups.append('text').attr('text-anchor', 'middle').text(ƒ('properties', 'iso_a2'));
+			var countryLabels = countryLabelGroups.selectAll('text');
+
 			var applicationCircles = countryGroups.append('circle')
 				.attr('class', 'application-count')
 				.attr('r', function (f) { return rApp(byCountry[f.properties.iso_a2].applications); });
@@ -143,18 +152,29 @@ window.addEventListener('DOMContentLoaded', function () {
 
 			function resize() {
 				var rect = svg.node().getBoundingClientRect();
-				var width = rect.width - 2 * MARGIN;
+				var width = Math.min(rect.width - 2 * MARGIN, WIDTH);
 				var height = rect.height - 2 * MARGIN;
+
+				var fontSize = 400/Math.sqrt(width);
+
+				svg.selectAll('text').attr('font-size', fontSize);
+				countryLabels.attr('dy', fontSize/3.3);
 			}
 			function setMetric(metric) {
+				var radius;
 				if (metric === 'population') {
-					metricCircles.transition().attr('r',
-						function (f) { return rPop(byCountry[f.properties.iso_a2].population); });
+					radius = function (f) { return rPop(byCountry[f.properties.iso_a2].population); };
 				} else if (metric === 'gdp') {
-					metricCircles.transition().attr('r',
-						function (f) { return rGDP(byCountry[f.properties.iso_a2].gdp); });
+					radius = function (f) { return rGDP(byCountry[f.properties.iso_a2].gdp); };
 				}
+				metricCircles.transition().attr('r', radius);
+				countryLabels.transition().attr('dx', function (f) {
+					var radii = [ radius(f), rApp(byCountry[f.properties.iso_a2].applications) ];
+					if (Math.min.apply(null, radii) < 10) return -(Math.max.apply(null, radii) + 15);
+					return 0;
+				});
 			}
+			setMetric('population');
 
 			window.debug.setMetric = setMetric;
 			window.addEventListener('resize', resize);
