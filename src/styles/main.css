@@ -33,15 +33,20 @@ rect {
 	vector-effect: non-scaling-stroke;
 }
 rect.metric {
-	fill: rgba(0, 0, 0, 0);
+	fill: #fff;
+	stroke: rgba(0, 0, 0, .2);
+	stroke-width: 2;
+	cursor: pointer;
+}
+rect.metric-outline {
 	stroke-width: 1;
-	mix-blend-mode: difference;
-	stroke: rgba(255, 255, 255, .5);
+	stroke: #fff;
+	fill: none;
 	cursor: pointer;
 }
 rect.application-count {
 	mix-blend-mode: multiply;
-	fill: #415A77;
+	fill: rgba(117, 33, 4, 1);
 	cursor: pointer;
 }
 .label text:first-child {

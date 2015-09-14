@@ -102,7 +102,7 @@ window.addEventListener('DOMContentLoaded', function () {
 				.range([ 0, MAX_SQUARE ]);
 			var rGDP = d3.scale.sqrt()
 				.domain([ 0, totals.gdp ])
-				.range([ 0, WIDTH/4 ]);
+				.range([ 0, MAX_SQUARE ]);
 			var projection = d3.geo.conicConformal()
 				.parallels([ 65, 35 ])
 				.center([ 0, 52 ])
@@ -240,13 +240,18 @@ window.addEventListener('DOMContentLoaded', function () {
 				.on('mouseenter', tooltip.show)
 				.on('mouseleave', tooltip.hide);
 
+			var metricRects = countryGroups.append('rect')
+				.attr('class', 'metric')
+				.attr('width', function (f) { return rPop(f.data.population); })
+				.attr('height', function (f) { return rPop(f.data.population); });
+
 			var applicationRects = countryGroups.append('rect')
 				.attr('class', 'application-count')
 				.attr('width', function (f) { return rApp(f.data.applications); })
 				.attr('height', function (f) { return rApp(f.data.applications); });
 
-			var metricRects = countryGroups.append('rect')
-				.attr('class', 'metric')
+			var metricRectOutlines = countryGroups.append('rect')
+				.attr('class', 'metric-outline')
 				.attr('width', function (f) { return rPop(f.data.population); })
 				.attr('height', function (f) { return rPop(f.data.population); });
 
@@ -309,6 +314,7 @@ window.addEventListener('DOMContentLoaded', function () {
 				metric = m.toLowerCase();
 				metricControl.classed('active', function (m) { return m.toLowerCase() === metric; });
 				metricRects.transition().attr('width', rectSide[metric]).attr('height', rectSide[metric]);
+				metricRectOutlines.transition().attr('width', rectSide[metric]).attr('height', rectSide[metric]);
 			}
 			setMetric('population');
 
