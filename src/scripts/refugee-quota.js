@@ -235,7 +235,7 @@ window.addEventListener('DOMContentLoaded', function () {
 				.append('g')
 				.attr('class', 'country')
 				.attr('transform', function (f) {
-					return translate(f.x - f.w / 2 + f.data.markerX, f.y - f.w / 2 + f.data.markerY);
+					return translate(f.x - f.w / 2 + f.data.markerX, f.y + f.w / 2 + f.data.markerY) + ' scale(1, -1)';
 				})
 				.on('mouseenter', tooltip.show)
 				.on('mouseleave', tooltip.hide);
