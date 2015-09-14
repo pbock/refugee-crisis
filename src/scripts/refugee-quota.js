@@ -16,7 +16,7 @@ window.addEventListener('DOMContentLoaded', function () {
 		'HU', 'IS', 'IT', 'LV', 'LI', 'LT', 'LU', 'MT', 'NL',
 		'NO', 'PL', 'PT', 'SK', 'SI', 'ES', 'SE', 'CH'];
 	function isSchengenCountry(feature) {
-		return schengenCountries.indexOf(feature.properties.iso_a2) !== -1;
+		return schengenCountries.indexOf(feature.id) !== -1;
 	}
 
 	// D3 helpers
@@ -108,6 +108,7 @@ window.addEventListener('DOMContentLoaded', function () {
 				.center([ 0, 52 ])
 				.rotate([ -10, 0 ])
 				.translate([ WIDTH/2, HEIGHT/2 ])
+				.clipExtent([ [ -WIDTH, -50 ], [ 3 * WIDTH, HEIGHT + 100 ] ])
 				.scale(1300);
 			var path = d3.geo.path()
 				.projection(projection);
@@ -191,12 +192,12 @@ window.addEventListener('DOMContentLoaded', function () {
 			})();
 
 
-			var world = topojson.feature(geo, geo.objects.ne_110m_admin_0_countries);
-			var borders = topojson.mesh(geo, geo.objects.ne_110m_admin_0_countries,
+			var world = topojson.feature(geo, geo.objects.ne_50m_admin_0_countries);
+			var borders = topojson.mesh(geo, geo.objects.ne_50m_admin_0_countries,
 				function(a, b) { return a !== b; });
-			var schengen = topojson.merge(geo, geo.objects.ne_110m_admin_0_countries.geometries.filter(isSchengenCountry));
+			var schengen = topojson.merge(geo, geo.objects.ne_50m_admin_0_countries.geometries.filter(isSchengenCountry));
 			world.features.forEach(function (f) {
-				f.data = byCountry[f.properties.iso_a2];
+				f.data = byCountry[f.id];
 				if (f.data) f.data.feature = f;
 			});
 
@@ -263,14 +264,17 @@ window.addEventListener('DOMContentLoaded', function () {
 				.append('svg')
 					.attr({ width: 30, height: 30 })
 					.append('rect')
-						.attr({ 'class': 'application-count', cx: 15, cy: 15, r: 12 });
+						.attr({ 'class': 'application-count', x: 3, y: 3, width: 24, height: 24 });
 			dl.append('dd')
 				.text('Number of asylum applications by Syrians, Eritreans, and Iraqis (April—June 2015*)')
 			dl.append('dt')
 				.append('svg')
 					.attr({ width: 30, height: 30 })
+					.selectAll('rect')
+					.data([ 'metric', 'metric-outline' ])
+					.enter()
 					.append('rect')
-						.attr({ 'class': 'metric', cx: 15, cy: 15, r: 12 });
+						.attr({ 'class': ƒ(), x: 3, y: 3, width: 24, height: 24 });
 			var metricControl = dl.append('dd')
 				.attr('class', 'controls')
 				.text('Number of applications if they were equally distributed by ')
