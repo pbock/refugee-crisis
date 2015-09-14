@@ -8,6 +8,7 @@ window.addEventListener('DOMContentLoaded', function () {
 	var MARGIN = 10;
 	var WIDTH = 750;
 	var HEIGHT = 750;
+	var MAX_SQUARE = WIDTH / 3.5;
 
 	// Additional data
 	var schengenCountries = [
@@ -69,6 +70,8 @@ window.addEventListener('DOMContentLoaded', function () {
 					gdpPerCapita: +row['gdp/capita'],
 					applications: +row.nsum,
 					population:	  +row.population,
+					markerX:      +row.markerX || 0,
+					markerY:      +row.markerY || 0,
 				};
 			}).sort(function (a, b) {
 				return b.gdpPerCapita - a.gdpPerCapita;
@@ -93,10 +96,10 @@ window.addEventListener('DOMContentLoaded', function () {
 			// Scales and formats
 			var rPop = d3.scale.sqrt()
 				.domain([ 0, totals.population ])
-				.range([ 0, WIDTH/4 ]);
+				.range([ 0, MAX_SQUARE ]);
 			var rApp = d3.scale.sqrt()
 				.domain([ 0, totals.applications ])
-				.range([ 0, WIDTH/4 ]);
+				.range([ 0, MAX_SQUARE ]);
 			var rGDP = d3.scale.sqrt()
 				.domain([ 0, totals.gdp ])
 				.range([ 0, WIDTH/4 ]);
@@ -192,7 +195,20 @@ window.addEventListener('DOMContentLoaded', function () {
 			var borders = topojson.mesh(geo, geo.objects.ne_110m_admin_0_countries,
 				function(a, b) { return a !== b; });
 			var schengen = topojson.merge(geo, geo.objects.ne_110m_admin_0_countries.geometries.filter(isSchengenCountry));
-			world.features.forEach(function (f) { f.data = byCountry[f.properties.iso_a2]; });
+			world.features.forEach(function (f) {
+				f.data = byCountry[f.properties.iso_a2];
+				if (f.data) f.data.feature = f;
+			});
+
+			// Project the squares' coordinates
+			applications.forEach(function (a) {
+				var feature = a.feature;
+				if (!feature) return;
+				var centroid = mainCentroid(path, feature);
+				feature.x = centroid[0];
+				feature.y = centroid[1];
+				feature.w = Math.max( rPop(a.population), rGDP(a.gdp), rApp(a.applications) );
+			});
 			debug.world = world;
 
 			var paths = stage.selectAll('path')
@@ -219,9 +235,7 @@ window.addEventListener('DOMContentLoaded', function () {
 				.append('g')
 				.attr('class', 'country')
 				.attr('transform', function (f) {
-					var centroid = mainCentroid(path, f);
-					var side = rApp(f.data.applications);
-					return translate.apply(null, [ centroid[0] - side/2, centroid[1] - side/2 ]);
+					return translate(f.x - f.w / 2 + f.data.markerX, f.y - f.w / 2 + f.data.markerY);
 				})
 				.on('mouseenter', tooltip.show)
 				.on('mouseleave', tooltip.hide);
