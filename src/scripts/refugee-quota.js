@@ -166,7 +166,7 @@ window.addEventListener('DOMContentLoaded', function () {
 					var gRect = group.node().getBoundingClientRect();
 					var cRect = container.node().getBoundingClientRect();
 					var tRect = tt.node().getBoundingClientRect();
-					var left, right;
+					var left, right, top;
 					if (gRect.left + gRect.width / 2 > cRect.width / 2) {
 						left = 'auto';
 						right = cRect.width - gRect.left + 5 + 'px';
@@ -174,11 +174,11 @@ window.addEventListener('DOMContentLoaded', function () {
 						left = (gRect.left - cRect.left) + gRect.width + 5 + 'px';
 						right = 'auto';
 					}
-					var top = gRect.top - cRect.top;
-					if (top + tRect.height > window.innerHeight) {
-						top = window.innerHeight - tRect.height - cRect.top;
+					if (gRect.top + tRect.height > window.innerHeight) {
+						top = window.innerHeight - tRect.height - cRect.top + 'px';
+					} else {
+						top = gRect.top - cRect.top + 'px';
 					}
-					top += 'px';
 					tt.style({ left: left, right: right, top: top });
 
 					// Fill elements
