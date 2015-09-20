@@ -1,7 +1,7 @@
 Refugee Crisis
 ==============
 
-A visualisation of recent asylum applicaions in Europe to accompany my blog post [_Too Little Europe, Too Little Union_](http://philippbock.de/blog/2015/09/21/refugee-quota/).
+A visualisation of recent asylum applicaions in Europe to accompany my blog post [_Too Little Europe, Too Little Union_](http://philippbock.de/blog/2015/09/20/refugee-crisis/).
 
 
 ## Setup and Building
