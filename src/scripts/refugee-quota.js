@@ -134,7 +134,7 @@ window.addEventListener('DOMContentLoaded', function () {
 				var stats = [
 					{ name: 'applications', label: 'Applications', relative: true },
 					{ name: 'by-metric',
-						label: function () { return 'Applications if they were distributed by ' + metric; },
+						label: function () { return 'Applications if they were distributed by ' + (metric === 'gdp' ? 'GDP' : metric); },
 						value: function (f) { return totals.applications * f.data.relative[metric]; }
 					},
 					{ name: 'gdp', label: 'GDP', unit: '€ _ M', relative: true },
