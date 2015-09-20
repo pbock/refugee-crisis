@@ -48,6 +48,11 @@ rect.application-count {
 	fill: #752104;
 	cursor: pointer;
 }
+.legend rect.application-count,
+.legend rect.metric,
+.legend rect.metric-outline {
+	cursor: default;
+}
 .label text:first-child {
 	stroke: #fff;
 	stroke-width: 3;
