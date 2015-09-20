@@ -295,7 +295,8 @@ window.addEventListener('DOMContentLoaded', function () {
 			dl.append('dd')
 				.text('Schengen Area');
 
-			legend.append('p').append('small').text('* June data estimated for Cyprus')
+			legend.append('p').append('small').text('* June data estimated for Cyprus.');
+			legend.append('p').append('small').html('Statistical data from <a href="http://appsso.eurostat.ec.europa.eu/nui/show.do?dataset=migr_asyappctzm">Eurostat</a>; geographical data from <a href="http://www.naturalearthdata.com/downloads/50m-cultural-vectors/50m-admin-0-countries-2/">Natural Earth</a>.');
 
 			// As a sanity check, calculate the total area of all three sets of rects
 			var totalAreas = { population: 0, gdp: 0, applications: 0 };
