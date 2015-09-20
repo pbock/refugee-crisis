@@ -55,10 +55,13 @@ window.addEventListener('DOMContentLoaded', function () {
 		return path.centroid(feature);
 	}
 
+	container.classed('loading', true);
+
 	queue()
 		.defer(d3.json, BASEDIR + 'data/world.topojson')
 		.defer(d3.tsv, BASEDIR + 'data/applications.tsv')
 		.await(function (error, geo, applications) {
+			container.classed('loading', false);
 			var svg = container.append('svg')
 				.attr('class', 'visualization')
 				.attr('preserveAspectRatio', 'xMidYMid')
