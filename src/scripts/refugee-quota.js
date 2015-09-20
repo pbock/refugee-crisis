@@ -268,7 +268,7 @@ window.addEventListener('DOMContentLoaded', function () {
 					.append('rect')
 						.attr({ 'class': 'application-count', x: 3, y: 3, width: 24, height: 24 });
 			dl.append('dd')
-				.text('Number of asylum applications by Syrians, Eritreans and Iraqis (April—June 2015*)')
+				.text('Number of asylum applications by Syrians, Eritreans and Iraqis (April—June 2015)')
 			dl.append('dt')
 				.append('svg')
 					.attr({ width: 30, height: 30 })
