@@ -175,8 +175,8 @@ window.addEventListener('DOMContentLoaded', function () {
 						right = 'auto';
 					}
 					var top = gRect.top - cRect.top;
-					if (top + tRect.height > document.body.scrollTop + window.innerHeight) {
-						top = window.innerHeight + document.body.scrollTop - tRect.height;
+					if (top + tRect.height > window.innerHeight) {
+						top = window.innerHeight - tRect.height - cRect.top;
 					}
 					top += 'px';
 					tt.style({ left: left, right: right, top: top });
