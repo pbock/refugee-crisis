@@ -45,8 +45,7 @@ rect.metric-outline {
 	cursor: pointer;
 }
 rect.application-count {
-	mix-blend-mode: multiply;
-	fill: rgba(117, 33, 4, 1);
+	fill: #752104;
 	cursor: pointer;
 }
 .label text:first-child {
