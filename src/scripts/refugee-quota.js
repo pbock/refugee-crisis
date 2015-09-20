@@ -4,6 +4,9 @@ window.addEventListener('DOMContentLoaded', function () {
 
 	window.debug = {};
 
+	var container = d3.select('.refugee-quota');
+	var DATA_DIR = container.attr('data-datadir') || '';
+
 	// Graph setup
 	var MARGIN = 10;
 	var WIDTH = 750;
@@ -53,10 +56,9 @@ window.addEventListener('DOMContentLoaded', function () {
 	}
 
 	queue()
-		.defer(d3.json, 'data/world.topojson')
-		.defer(d3.tsv, 'data/applications.tsv')
+		.defer(d3.json, DATA_DIR + 'data/world.topojson')
+		.defer(d3.tsv, DATA_DIR + 'data/applications.tsv')
 		.await(function (error, geo, applications) {
-			var container = d3.select('.refugee-quota');
 			var svg = container.append('svg')
 				.attr('class', 'visualization')
 				.attr('preserveAspectRatio', 'xMidYMid')
