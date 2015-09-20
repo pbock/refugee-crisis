@@ -162,6 +162,7 @@ window.addEventListener('DOMContentLoaded', function () {
 					var group = countryGroups.filter(function (g) { return g === f; });
 					var gRect = group.node().getBoundingClientRect();
 					var cRect = container.node().getBoundingClientRect();
+					var tRect = tt.node().getBoundingClientRect();
 					var left, right;
 					if (gRect.left + gRect.width / 2 > cRect.width / 2) {
 						left = 'auto';
@@ -170,9 +171,12 @@ window.addEventListener('DOMContentLoaded', function () {
 						left = (gRect.left - cRect.left) + gRect.width + 5 + 'px';
 						right = 'auto';
 					}
-					tt.style({
-						left: left, right: right,
-						top: gRect.top - cRect.top + 'px' });
+					var top = gRect.top - cRect.top;
+					if (top + tRect.height > document.body.scrollTop + window.innerHeight) {
+						top = window.innerHeight + document.body.scrollTop - tRect.height;
+					}
+					top += 'px';
+					tt.style({ left: left, right: right, top: top });
 
 					// Fill elements
 					countryName.text(f.properties.name);
