@@ -75,7 +75,7 @@ rect.application-count {
 	background: #fff;
 	padding: .5em;
 	width: 20em;
-	max-width: 50%;
+	max-width: 50vw;
 }
 .tooltip .values {
 	display: -webkit-box;
